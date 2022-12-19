@@ -15,7 +15,7 @@ export const publicRouter = router({
     // Handle file.
     const avatar = input.avatar;
 
-    console.log("TCRP File Upload");
+    console.log("TRPC File Upload");
     console.log(avatar);
     console.log(JSON.stringify(avatar));
 
