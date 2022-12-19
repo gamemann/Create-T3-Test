@@ -14,11 +14,21 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Avatar {
+  uid     Int       @unique
+  name    String
+  data    String
+  profile Profile[]
+
+  @@unique([uid, name])
+}
+
 model Profile {
   id        Int      @id @default(autoincrement())
   name      String
   aboutme   String?
-  avatar    String?
+  avatar    Avatar?  @relation(fields: [avatarId], references: [uid])
+  avatarId  Int      @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   User      User[]

@@ -1,26 +1,28 @@
+import * as fs from 'fs';
 import { z } from "zod";
 
 import { router, publicProcedure } from "../trpc";
 
-export const publicRouter = router({
+export const profileRouter = router({
   updateOrAddProfile: publicProcedure.input(z.object({
     name: z.string(),
     aboutme: z.string(),
-    avatar: z.any()
+    avatar: z.string(),
+    avatarRaw: z.string()
   })).mutation(async ({ ctx, input}) => {
-    console.log("Name => " + input.name);
-    console.log("About Me => " + input.aboutme);
-    console.log("Avatar => " + input.avatar);
-
     // Handle file.
     const avatar = input.avatar;
-
-    console.log("TRPC File Upload");
-    console.log(avatar);
-    console.log(JSON.stringify(avatar));
+    const avatarRaw = input.avatarRaw;
 
     // Upload it as a new file name.
-    const fileName = 'images/' + avatar.name;
+    const fileName = "images/" + avatar;
+    const full_file_path = process.env.UPLOADS_DIR + fileName;
+
+    try {
+      fs.writeFileSync(full_file_path, avatarRaw);
+    } catch (err) {
+      console.error(err);
+    }
     
     return ctx.prisma.profile.upsert({
       where: {

@@ -8,14 +8,14 @@ import { useState } from 'react';
 import { trpc } from "../utils/trpc";
 
 const Home: NextPage = () => {
-  const profiles = trpc.public.getProfile.useQuery();
-  const profileSubmit = trpc.public.updateOrAddProfile.useMutation();
+  const profiles = trpc.profile.getProfile.useQuery();
+  const profileSubmit = trpc.profile.updateOrAddProfile.useMutation();
 
   const testForm = useFormik({
     initialValues: {
       name: "",
       aboutme: "",
-      avatar: null,
+      avatar: "",
     },
 
     onSubmit: (values) => {
@@ -24,8 +24,15 @@ const Home: NextPage = () => {
         console.log(values.avatar);
         console.log("Name => " + values.avatar.name);
       }
+
+      let newVals: { avatarRaw?: any; name: string; aboutme: string; avatar: string; } = {
+        name: values.name,
+        aboutme: values.aboutme,
+        avatar: values.avatar.name,
+        avatarRaw:values.avatar.name
+      }
       
-      profileSubmit.mutate(values);
+      profileSubmit.mutate(newVals);
     },
   });
 
@@ -63,7 +70,7 @@ const Home: NextPage = () => {
                 name="avatar"
                 className="text-white" 
                 onChange={(event) => {
-                  testForm.setFieldValue("avatar", event.currentTarget.files[0]);
+                      testForm.setFieldValue("avatar", event.currentTarget.files[0]);
                 }}
               />
             </div>
