@@ -1,6 +1,8 @@
 import { prisma } from "@prisma/client";
 import { z } from "zod";
 
+import fs from 'fs';
+
 import { router, publicProcedure } from "../trpc";
 
 export const profileRouter = router({
@@ -15,10 +17,21 @@ export const profileRouter = router({
     const avatarData = (input.avatarData != null) ? input.avatarData : null;
 
     // Upload it as a new file name.
-    const fileName = "images/" + avatarName;
+    const fileName = "images/avatars/" + (avatarName != null ) ? avatarName : 'NULL';
 
     // Store avatar.
     if (avatarData != null) {
+      const base64Data = avatarData.split(',')[1];
+
+      if (base64Data != null) {
+        const buffer = Buffer.from(base64Data, 'base64');
+
+        // Replace path. Will make this env variable.
+        fs.writeFileSync('/home/dev/Create-T3-Test/public/' + fileName, buffer);
+      }
+
+      // If you want to store the Base64 into the file system directly, do that.
+      /*
       let avatar_model = await ctx.prisma.avatar.upsert({
         where: {
           uid: 1
@@ -33,9 +46,7 @@ export const profileRouter = router({
           data: avatarData
         }
       })
-
-      console.log("Avatar Model =>")
-      console.log(avatar_model)
+      */
     }
     
     return ctx.prisma.profile.upsert({
