@@ -1,4 +1,4 @@
-import * as fs from 'fs';
+import { prisma } from "@prisma/client";
 import { z } from "zod";
 
 import { router, publicProcedure } from "../trpc";
@@ -7,21 +7,35 @@ export const profileRouter = router({
   updateOrAddProfile: publicProcedure.input(z.object({
     name: z.string(),
     aboutme: z.string(),
-    avatar: z.string(),
-    avatarRaw: z.string()
+    avatarName: z.string().nullable(),
+    avatarData: z.string().nullable()
   })).mutation(async ({ ctx, input}) => {
     // Handle file.
-    const avatar = input.avatar;
-    const avatarRaw = input.avatarRaw;
+    const avatarName = (input.avatarName != null) ? input.avatarName : null;
+    const avatarData = (input.avatarData != null) ? input.avatarData : null;
 
     // Upload it as a new file name.
-    const fileName = "images/" + avatar;
-    const full_file_path = process.env.UPLOADS_DIR + fileName;
+    const fileName = "images/" + avatarName;
 
-    try {
-      fs.writeFileSync(full_file_path, avatarRaw);
-    } catch (err) {
-      console.error(err);
+    // Store avatar.
+    if (avatarData != null) {
+      let avatar_model = await ctx.prisma.avatar.upsert({
+        where: {
+          uid: 1
+        },
+        update: {
+          name: fileName,
+          data: avatarData
+        },
+        create: {
+          uid: 1,
+          name: fileName,
+          data: avatarData
+        }
+      })
+
+      console.log("Avatar Model =>")
+      console.log(avatar_model)
     }
     
     return ctx.prisma.profile.upsert({
@@ -30,13 +44,11 @@ export const profileRouter = router({
       },
       update: {
         name: input.name,
-        aboutme: input.aboutme,
-        avatar: fileName
+        aboutme: input.aboutme
       },
       create: {
         name: input.name,
-        aboutme: input.aboutme,
-        avatar: fileName
+        aboutme: input.aboutme
       }
     })
   }),

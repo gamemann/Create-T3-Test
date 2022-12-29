@@ -19,8 +19,6 @@ model Avatar {
   name    String
   data    String
   profile Profile[]
-
-  @@unique([uid, name])
 }
 
 model Profile {
@@ -28,7 +26,7 @@ model Profile {
   name      String
   aboutme   String?
   avatar    Avatar?  @relation(fields: [avatarId], references: [uid])
-  avatarId  Int      @unique
+  avatarId  Int?     @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   User      User[]

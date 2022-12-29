@@ -1,7 +1,5 @@
 import { type NextPage } from "next";
 import Head from "next/head";
-import Link from "next/link";
-import { signIn, signOut, useSession } from "next-auth/react";
 
 import { useFormik, Field, FormikProvider } from "formik";
 import { useState } from 'react';
@@ -11,29 +9,44 @@ const Home: NextPage = () => {
   const profiles = trpc.profile.getProfile.useQuery();
   const profileSubmit = trpc.profile.updateOrAddProfile.useMutation();
 
+  const [avatar, setAvatar] = useState<File | null>(null);
+
   const testForm = useFormik({
     initialValues: {
       name: "",
-      aboutme: "",
-      avatar: "",
+      aboutme: ""
     },
 
     onSubmit: (values) => {
-      if (values.avatar != null)
-      {
-        console.log(values.avatar);
-        console.log("Name => " + values.avatar.name);
-      }
+      if (avatar != null) {
+        const reader = new FileReader();
 
-      let newVals: { avatarRaw?: any; name: string; aboutme: string; avatar: string; } = {
-        name: values.name,
-        aboutme: values.aboutme,
-        avatar: values.avatar.name,
-        avatarRaw:values.avatar.name
+        reader.onload = () => {
+          const fileData = reader.result;
+
+          let newVals: { name: string; aboutme: string; avatarName?: string; avatarData?: string; } = {
+            name: values.name,
+            aboutme: values.aboutme,
+            avatarName: avatar.name,
+            avatarData: fileData
+          }
+
+          profileSubmit.mutate(newVals);
+        };
+
+        reader.readAsDataURL(avatar);
+
+      } else {
+        let newVals: { name: string; aboutme: string; avatarName?: string; avatarData?: string; } = {
+          name: values.name,
+          aboutme: values.aboutme,
+          avatarName: null,
+          avatarData: null
+        }
+        
+        profileSubmit.mutate(newVals);
       }
-      
-      profileSubmit.mutate(newVals);
-    },
+    }
   });
 
   return (
@@ -70,7 +83,7 @@ const Home: NextPage = () => {
                 name="avatar"
                 className="text-white" 
                 onChange={(event) => {
-                      testForm.setFieldValue("avatar", event.currentTarget.files[0]);
+                  setAvatar(event.currentTarget.files[0]);
                 }}
               />
             </div>
